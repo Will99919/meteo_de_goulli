@@ -3,20 +3,30 @@
     "name": "meteo_de_goulli",
     "slug": "meteo_de_goulli",
     "version": "1.0.0",
+    "permission": [
+      "LOCATION"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "meteodegoulli",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Cette app utilise votre localisation pour afficher la météo de votre région."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permission": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
