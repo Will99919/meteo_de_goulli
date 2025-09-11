@@ -47,6 +47,9 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "API_KEY": "4a5e8c203d2d2c9163f90c38e545d84f"
     }
   }
 }
