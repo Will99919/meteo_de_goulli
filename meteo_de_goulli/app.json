@@ -3,6 +3,9 @@
     "name": "meteo_de_goulli",
     "slug": "meteo_de_goulli",
     "version": "1.0.0",
+    "extra":{
+      "openWeatherApiKey": "env{OPENWEATHER_API_KEY}"
+    },
     "permission": [
       "LOCATION"
     ],
@@ -28,6 +31,9 @@
         "ACCESS_FINE_LOCATION"
       ]
     },
+    "extra":{
+      "openWeatherApiKey": "4a5e8c203d2d2c9163f90c38e545d84f"
+    },
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -47,9 +53,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "API_KEY": "4a5e8c203d2d2c9163f90c38e545d84f"
     }
   }
 }

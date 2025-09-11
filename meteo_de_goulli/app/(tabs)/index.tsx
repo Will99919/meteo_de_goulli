@@ -4,9 +4,12 @@ import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import axios from 'axios';
 
+import CurrentWeather from '@/components/CurrentWeather'
+
 interface ForecastResponse {
   city: {
     name: string;
+    timezone: number;
   };
   list: {
     dt: number;
@@ -22,7 +25,7 @@ interface ForecastResponse {
   }[];
 }
 
-const API_URL = (lat: number, lon: number) => `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${Constants.expoConfig?.extra?.API_KEY}&lang=fr&units=metric`;
+const API_URL = (lat: number, lon: number) => `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${Constants.expoConfig?.extra?.openWeatherApiKey}&lang=fr&units=metric`;
 
 export default function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -67,8 +70,8 @@ const getWeather = async (location: Location.LocationObject) => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Chargement...</Text>
+        <ActivityIndicator size="large" color="#54565bff" />
+        <Text><br />Chargement...</Text>
       </View>
     );
   }
@@ -84,9 +87,7 @@ const getWeather = async (location: Location.LocationObject) => {
   
   return (
     <View style= {styles.container}>
-      <Text style={styles.cityText}>
-        Météo à {data?.city.name || 'Namek'}
-      </Text>
+        {data && <CurrentWeather data={data} />}
        {data?.list[0] && (
         <>
           <Text>Température : {data.list[0].main.temp}°C</Text>
@@ -103,7 +104,7 @@ const getWeather = async (location: Location.LocationObject) => {
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: Platform.OS === 'web' ? 0 : Constants.statusBarHeight || 20,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#e2e6e1',
     padding: 8,
   },
   cityText: {
