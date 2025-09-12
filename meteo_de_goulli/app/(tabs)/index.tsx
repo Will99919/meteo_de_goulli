@@ -57,11 +57,24 @@ export default function App() {
 
 const getWeather = async (location: Location.LocationObject) => {
   try {
+
+    const apiKey = Constants.expoConfig?.extra?.openWeatherApiKey;
+    console.log('Clé API chargée:', apiKey ? 'Oui (valeur masquée pour sécurité)' : 'Non (undefined - vérifiez .env et app.config.js)');
+    if (!apiKey) {
+      setErrorMsg('Clé API non configurée. Vérifiez .env et app.config.js');
+      setLoading(false);
+      return;
+    }
+
       const response = await axios.get<ForecastResponse>(API_URL(location.coords.latitude, location.coords.longitude));
       setData(response.data)
       setLoading(false)
-  } catch(error) {
-    setErrorMsg('Erreur de la récupération de la météo');
+  } catch(error: any) {
+    if (error.response?.status === 401) {
+      setErrorMsg('Erreur 401 : Clé API invalide ou non activée. Attendez 10-60 min après génération ou régénérez-la sur openweathermap.org.');
+    } else {
+      setErrorMsg(`Erreur lors de la récupération de la météo : ${error.message}`)
+    }
     setLoading(false);
     console.log("Erreur dans getWeather", error);
   }
@@ -71,7 +84,7 @@ const getWeather = async (location: Location.LocationObject) => {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#54565bff" />
-        <Text><br />Chargement...</Text>
+        <Text>Chargement...</Text>
       </View>
     );
   }
