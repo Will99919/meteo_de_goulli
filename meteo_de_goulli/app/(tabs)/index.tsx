@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import axios from 'axios';
 
 import CurrentWeather from '@/components/CurrentWeather'
+import Forecast from '@/components/Forecast';
 
 interface ForecastResponse {
   city: {
@@ -71,7 +72,7 @@ const getWeather = async (location: Location.LocationObject) => {
       setLoading(false)
   } catch(error: any) {
     if (error.response?.status === 401) {
-      setErrorMsg('Erreur 401 : Clé API invalide ou non activée. Attendez 10-60 min après génération ou régénérez-la sur openweathermap.org.');
+      setErrorMsg('Erreur 401 : Clé API invalide ou non activée');
     } else {
       setErrorMsg(`Erreur lors de la récupération de la météo : ${error.message}`)
     }
@@ -101,6 +102,7 @@ const getWeather = async (location: Location.LocationObject) => {
   return (
     <View style= {styles.container}>
         {data && <CurrentWeather data={data} />}
+        <Forecast data={data} />
        {data?.list[0] && (
         <>
           <Text>Température : {data.list[0].main.temp}°C</Text>

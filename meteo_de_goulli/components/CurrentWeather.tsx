@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, Image } from 'react-native';
 import { isSameDay } from 'date-fns';
 
+
+
 interface Forecast {
   dt: number;
   main: {
@@ -53,7 +55,7 @@ export default function CurrentWeather({ data }: CurrentWeatherProps) {
       <Text style={style.city}>{data?.city.name}</Text>
       <Text style={style.today}>Aujourd&apos;hui</Text>
       <Image
-        source={{ uri: getIcon(CurrentWeather.weather[0].icon) }}
+        source={{ uri: getIcon(CurrentWeather?.weather[0].icon) }}
         style={style.image}
       />
       <Text style={style.temp}>{Math.round(CurrentWeather.main.temp)}°C</Text>
@@ -66,9 +68,9 @@ const COLOR = "#54565b"
 
 const style = StyleSheet.create ({
     container: {
-        flex: 1,
+        marginTop: 60,
         alignItems: 'center',
-        justifyContent: 'center',
+        height: "65%"
     },
     city: {
         fontSize: 36,
