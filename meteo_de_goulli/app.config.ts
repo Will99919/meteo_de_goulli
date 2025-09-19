@@ -10,7 +10,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: config.slug || 'meteo-de-goulli',
     extra: {
       ...config.extra,
-      openWeatherApiKey: process.env.OPENWEATHER_API_KEY || 'fallback_key',
+      OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY || 'fallback_key',
     },
   };
 };
