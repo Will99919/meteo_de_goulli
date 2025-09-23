@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
+import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Déjà inclus
 
 import CurrentWeather from '@/components/CurrentWeather';
 import WeeklyForecast from '@/components/WeeklyForecast';
@@ -12,6 +13,7 @@ import WindStrength from '@/components/WindStrength';
 import AirQualityGauge from '../../components/AirQualityGauge';
 import UVIndex from '../../components/UVIndex';
 import HourlyForecast from '../../components/HourlyForecast';
+import WeatherMonkey from '@/components/WeatherMonkey'; // Déjà inclus
 
 interface ForecastResponse {
   list: {
@@ -203,53 +205,60 @@ export default function App() {
   }
 
   return (
-    <LinearGradient
-    colors={['#1ed7b5', '#f0f9a7']}
-    style={styles.container} 
-  >
-    <ScrollView 
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.mainContent}>
-        <View style={styles.leftSection}>
-          {data && <CurrentWeather data={data.list[0]} cityName={cityName ?? data.city.name} />}
-        </View>
-        <View style={styles.rightSection}>
-          {/* Contenu droit ici */}
-        </View>
-      </View>
-      <View style={styles.bottomSection}>
-        {data && (
-          <>
-            <HourlyForecast 
-              hourly={data.list
-                .filter((item, index) => index < 8)
-                .map(item => ({
-                  dt: item.dt,
-                  main: {
-                    temp: item.main.temp
-                  },
-                  weather: item.weather,
-                  pop: item.pop || 0
-                }))} 
-            />
-            <WeeklyForecast daily={groupByDay(data.list)} />
-            <View style={styles.gridContainer}>
-              <View style={styles.gridRow}>
-                <AirQualityGauge aqi={airQuality?.list[0]?.main.aqi || 1} />
-                <UVIndex uvi={3} />
-              </View>
-              <View style={styles.gridRow}>
-                <WindStrength wind={data.list[0].wind} />
-                <HumidityGauge humidity={data.list[0].main.humidity} />
-              </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <LinearGradient
+        colors={['#1ed7b5', '#f0f9a7']}
+        style={styles.container}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.mainContent}>
+            <View style={styles.leftSection}>
+              {data && <CurrentWeather data={data.list[0]} cityName={cityName ?? data.city.name} />}
             </View>
-          </>
-        )}
-      </View>
-    </ScrollView>
-  </LinearGradient>
+            <View style={styles.rightSection}>
+              {data && (
+                <WeatherMonkey
+                  temp={data.list[0].main.temp}
+                  description={data.list[0].weather[0].description}
+                />
+              )}
+            </View>
+          </View>
+          <View style={styles.bottomSection}>
+            {data && (
+              <>
+                <HourlyForecast
+                  hourly={data.list
+                    .filter((item, index) => index < 8)
+                    .map(item => ({
+                      dt: item.dt,
+                      main: {
+                        temp: item.main.temp
+                      },
+                      weather: item.weather,
+                      pop: item.pop || 0
+                    }))}
+                />
+                <WeeklyForecast daily={groupByDay(data.list)} />
+                <View style={styles.gridContainer}>
+                  <View style={styles.gridRow}>
+                    <AirQualityGauge aqi={airQuality?.list[0]?.main.aqi || 1} />
+                    <UVIndex uvi={3} />
+                  </View>
+                  <View style={styles.gridRow}>
+                    <WindStrength wind={data.list[0].wind} /> {/* Correction ici */}
+                    <HumidityGauge humidity={data.list[0].main.humidity} />
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    </GestureHandlerRootView>
   );
 }
 
