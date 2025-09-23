@@ -23,7 +23,7 @@ const getUVText = (uvi: number) => {
   return 'Extrême';
 };
 
-export const UVIndex: React.FC<UVIndexProps> = ({ uvi }) => {
+const UVIndex: React.FC<UVIndexProps> = ({ uvi }) => {
   const percentage = (uvi / 11) * 100;
 
   return (

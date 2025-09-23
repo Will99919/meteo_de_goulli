@@ -29,7 +29,7 @@ const getAqiText = (aqi: number) => {
   }
 };
 
-export const AirQualityGauge: React.FC<AirQualityGaugeProps> = ({ aqi }) => {
+const AirQualityGauge: React.FC<AirQualityGaugeProps> = ({ aqi }) => {
   const percentage = (aqi / 5) * 100;
 
   return (

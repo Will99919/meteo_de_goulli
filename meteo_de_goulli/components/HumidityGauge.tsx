@@ -7,7 +7,7 @@ interface HumidityGaugeProps {
   humidity: number;
 }
 
-export const HumidityGauge: React.FC<HumidityGaugeProps> = ({ humidity }) => {
+const HumidityGauge: React.FC<HumidityGaugeProps> = ({ humidity }) => {
   return (
     <View style={gaugeStyles.container}>
       <MaterialCommunityIcons name="water" size={24} color="white" />

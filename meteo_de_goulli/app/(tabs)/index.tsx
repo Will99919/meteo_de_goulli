@@ -11,6 +11,7 @@ import HumidityGauge from '@/components/HumidityGauge';
 import WindStrength from '@/components/WindStrength';
 import AirQualityGauge from '../../components/AirQualityGauge';
 import UVIndex from '../../components/UVIndex';
+import HourlyForecast from '../../components/HourlyForecast';
 
 interface ForecastResponse {
   list: {
@@ -22,6 +23,7 @@ interface ForecastResponse {
     };
     weather: { description: string; icon: string }[];
     wind: { speed: number };
+    pop: number;
   }[];
   city: {
     name: string;
@@ -218,21 +220,33 @@ export default function App() {
         </View>
       </View>
       <View style={styles.bottomSection}>
-        {data?.list && <WeeklyForecast daily={groupByDay(data.list)} />}
-        <View style={styles.gridContainer}>
-          <View style={styles.gridRow}>
-            <AirQualityGauge aqi={airQuality?.list[0]?.main.aqi || 1} />
-            <UVIndex uvi={3} />
-          </View>
-          <View style={styles.gridRow}>
-            {data && (
-              <>
+        {data && (
+          <>
+            <HourlyForecast 
+              hourly={data.list
+                .filter((item, index) => index < 8)
+                .map(item => ({
+                  dt: item.dt,
+                  main: {
+                    temp: item.main.temp
+                  },
+                  weather: item.weather,
+                  pop: item.pop || 0
+                }))} 
+            />
+            <WeeklyForecast daily={groupByDay(data.list)} />
+            <View style={styles.gridContainer}>
+              <View style={styles.gridRow}>
+                <AirQualityGauge aqi={airQuality?.list[0]?.main.aqi || 1} />
+                <UVIndex uvi={3} />
+              </View>
+              <View style={styles.gridRow}>
                 <WindStrength wind={data.list[0].wind} />
                 <HumidityGauge humidity={data.list[0].main.humidity} />
-              </>
-            )}
-          </View>
-        </View>
+              </View>
+            </View>
+          </>
+        )}
       </View>
     </ScrollView>
   </LinearGradient>
@@ -253,6 +267,7 @@ const styles = StyleSheet.create({
     flex: 0.7,
     flexDirection: 'row',
     width: '100%',
+    marginBottom: 50,
   },
   leftSection: {
     flex: 1,
@@ -268,17 +283,16 @@ const styles = StyleSheet.create({
   bottomSection: {
     width: '100%',
     alignItems: 'center',
-    paddingBottom: 20,
-    gap: 20,
+    gap: 10,
   },
   gridContainer: {
     width: '100%',
-    gap: 10,
     padding: 10,
+    gap: 5,
   },
   gridRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 5,
     width: '100%',
   },
   additionalInfoContainer: {
