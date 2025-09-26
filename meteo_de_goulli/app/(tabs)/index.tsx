@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, Platform, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Platform, FlatList } from 'react-native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Déjà inclus
 
 import CurrentWeather from '@/components/CurrentWeather';
 import WeeklyForecast from '@/components/WeeklyForecast';
@@ -13,8 +12,9 @@ import WindStrength from '@/components/WindStrength';
 import AirQualityGauge from '../../components/AirQualityGauge';
 import UVIndex from '../../components/UVIndex';
 import HourlyForecast from '../../components/HourlyForecast';
-import WeatherMonkey from '@/components/WeatherMonkey'; // Déjà inclus
+import WeatherMonkey from '@/components/WeatherMonkey';
 
+// Interfaces
 interface ForecastResponse {
   list: {
     dt: number;
@@ -48,7 +48,7 @@ interface AirQualityResponse {
 const API_URL = (lat: number, lon: number) =>
   `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${Constants.expoConfig?.extra?.OPENWEATHER_API_KEY}&lang=fr&units=metric`;
 
-// 🔹 Regroupe les données par jour pour WeeklyForecast
+// Regroupe les données par jour pour WeeklyForecast
 function groupByDay(list: ForecastResponse['list']) {
   const days: {
     dt: number;
@@ -111,22 +111,16 @@ export default function App() {
 
         const userLocation = await Location.getCurrentPositionAsync({});
 
-        // 🔹 Récupération du nom de la ville
         try {
           const places = await Location.reverseGeocodeAsync(userLocation.coords);
           const place = places?.[0];
-          setCityName(
-            place?.city ?? place?.region ?? place?.country ?? null
-          );
+          setCityName(place?.city ?? place?.region ?? place?.country ?? null);
         } catch (e) {
           console.warn('Reverse geocode failed', e);
         }
 
         await getWeather(userLocation);
-        await getAirQuality(
-          userLocation.coords.latitude,
-          userLocation.coords.longitude
-        );
+        await getAirQuality(userLocation.coords.latitude, userLocation.coords.longitude);
       } catch (error) {
         setErrorMsg('Erreur lors de la récupération de la localisation');
         setLoading(false);
@@ -157,9 +151,7 @@ export default function App() {
       if (error.response?.status === 401) {
         setErrorMsg('Erreur 401 : Clé API invalide ou non activée');
       } else {
-        setErrorMsg(
-          `Erreur lors de la récupération de la météo : ${error.message}`
-        );
+        setErrorMsg(`Erreur lors de la récupération de la météo : ${error.message}`);
       }
       setLoading(false);
       console.log('Erreur dans getWeather', error);
@@ -177,88 +169,100 @@ export default function App() {
     }
   };
 
+  // Définition de renderItem à l'intérieur de App pour accéder aux variables d'état
+  const renderItem = ({ item }: { item: 'current' | 'hourly' | 'weekly' | 'grid' }) => {
+    if (!data) return null; // Sécurité si data n'est pas chargé
+    switch (item) {
+      case 'current':
+        return (
+          <View style={styles.mainContent}>
+            <View style={styles.leftSection}>
+              <CurrentWeather data={data.list[0]} cityName={cityName ?? data.city.name} />
+            </View>
+            <View style={styles.rightSection}>
+              <WeatherMonkey icon={data.list[0].weather[0].icon} />
+            </View>
+          </View>
+        );
+      case 'hourly':
+        return (
+          <HourlyForecast
+            hourly={data.list
+              .filter((item, index) => index < 8)
+              .map(item => ({
+                dt: item.dt,
+                main: { temp: item.main.temp },
+                weather: item.weather,
+                pop: item.pop || 0,
+              }))}
+          />
+        );
+      case 'weekly':
+        return (
+          <View style={styles.centeredSection}>
+            <WeeklyForecast daily={groupByDay(data.list)} />
+          </View>
+        );
+      case 'grid':
+        return (
+          <View style={styles.gridContainer}>
+            <View style={styles.gridRow}>
+              <AirQualityGauge aqi={airQuality?.list[0]?.main.aqi || 1} />
+              <UVIndex uvi={3} />
+            </View>
+            <View style={styles.gridRow}>
+              <WindStrength wind={data.list[0].wind} />
+              <HumidityGauge humidity={data.list[0].main.humidity} />
+            </View>
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
-      <LinearGradient
-        colors={['#1ed7b5', '#f0f9a7']}
-        style={styles.container}
-      >
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="white" />
-          <Text style={styles.loadingText}>Chargement...</Text>
-        </View>
-      </LinearGradient>
+      <View style={{ flex: 1 }}>
+        <LinearGradient colors={['#1ed7b5', '#f0f9a7']} style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="white" />
+            <Text style={styles.loadingText}>Chargement...</Text>
+          </View>
+        </LinearGradient>
+      </View>
     );
   }
 
   if (errorMsg) {
     return (
-      <LinearGradient colors={['#57ebde', '#aefb2a']} style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.ErrorText}>{errorMsg}</Text>
-        </ScrollView>
-      </LinearGradient>
+      <View style={{ flex: 1 }}>
+        <LinearGradient colors={['#57ebde', '#aefb2a']} style={styles.container}>
+          <View style={styles.scrollContent}>
+            <Text style={styles.ErrorText}>{errorMsg}</Text>
+          </View>
+        </LinearGradient>
+      </View>
     );
   }
 
+  // Typage explicite pour sections
+  const sections: ('current' | 'hourly' | 'weekly' | 'grid')[] = ['current', 'hourly', 'weekly', 'grid'];
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <LinearGradient
-        colors={['#1ed7b5', '#f0f9a7']}
-        style={styles.container}
-      >
-        <ScrollView
+    <View style={{ flex: 1 }}>
+      <LinearGradient colors={['#1ed7b5', '#f0f9a7']} style={styles.container}>
+        <FlatList
+          data={sections}
+          renderItem={renderItem}
+          keyExtractor={(item) => item}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.mainContent}>
-            <View style={styles.leftSection}>
-              {data && <CurrentWeather data={data.list[0]} cityName={cityName ?? data.city.name} />}
-            </View>
-            <View style={styles.rightSection}>
-              {data && (
-                <WeatherMonkey
-                  temp={data.list[0].main.temp}
-                  description={data.list[0].weather[0].description}
-                />
-              )}
-            </View>
-          </View>
-          <View style={styles.bottomSection}>
-            {data && (
-              <>
-                <HourlyForecast
-                  hourly={data.list
-                    .filter((item, index) => index < 8)
-                    .map(item => ({
-                      dt: item.dt,
-                      main: {
-                        temp: item.main.temp
-                      },
-                      weather: item.weather,
-                      pop: item.pop || 0
-                    }))}
-                />
-                <WeeklyForecast daily={groupByDay(data.list)} />
-                <View style={styles.gridContainer}>
-                  <View style={styles.gridRow}>
-                    <AirQualityGauge aqi={airQuality?.list[0]?.main.aqi || 1} />
-                    <UVIndex uvi={3} />
-                  </View>
-                  <View style={styles.gridRow}>
-                    <WindStrength wind={data.list[0].wind} /> {/* Correction ici */}
-                    <HumidityGauge humidity={data.list[0].main.humidity} />
-                  </View>
-                </View>
-              </>
-            )}
-          </View>
-        </ScrollView>
+          ListHeaderComponent={() => <View style={styles.headerSpacer} />}
+          ListFooterComponent={() => <View style={styles.footerSpacer} />}
+        />
       </LinearGradient>
-    </GestureHandlerRootView>
+    </View>
   );
 }
 
@@ -269,7 +273,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingTop: Platform.OS === 'web' ? 0 : Constants.statusBarHeight || 20,
     padding: 8,
   },
   mainContent: {
@@ -289,6 +292,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  centeredSection: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   bottomSection: {
     width: '100%',
     alignItems: 'center',
@@ -304,20 +312,11 @@ const styles = StyleSheet.create({
     gap: 5,
     width: '100%',
   },
-  additionalInfoContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    paddingHorizontal: 10,
-    gap: 10,
+  headerSpacer: {
+    height: Platform.OS === 'web' ? 0 : Constants.statusBarHeight || 20,
   },
-  additionalInfoColumn: {
-    flex: 1,
-    gap: 10,
-  },
-  rowContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    flex: 1,
+  footerSpacer: {
+    height: 20,
   },
   ErrorText: {
     fontSize: 18,
